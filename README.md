@@ -3,9 +3,12 @@ Requires Python ~3.8, poetry.
 Install project dependencies:
 
 
-`poetry install`
+    poetry install
 
 Activate virtual env:
 
-`poetry shell`
+    poetry shell
 
+Run:
+
+    poetry run python sandpile_gui.py
