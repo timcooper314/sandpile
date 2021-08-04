@@ -1,4 +1,4 @@
-Requires Python3.8, poetry.
+Requires Python ~3.8, poetry.
 
 Install project dependencies:
 

@@ -5,7 +5,7 @@ description = ""
 authors = ["Tim Cooper <timcooper314@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "~3.8"
 matplotlib = "^3.4.2"
 numpy = "^1.21.1"
 scipy = "^1.7.1"
