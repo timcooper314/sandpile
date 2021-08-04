@@ -1,18 +1,16 @@
-# Abelian sandpile model GUI
-import numpy as np
-# import scipy as sp
-import random as random
-import matplotlib.pyplot as plt
-# from scipy.optimize import curve_fit
-# from math import ceil, floor
-from functools import partial
-# import time
 import sys
+# import time
+# from math import ceil, floor
+import random as random
+import numpy as np
+import matplotlib.pyplot as plt
+# import scipy as sp
+# from scipy.optimize import curve_fit
+from functools import partial
+
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, \
-    QPushButton, QRadioButton, QLineEdit, QDialog
-# from PyQt5.QtWidgets import QLabel, QWidget
-# from PyQt5.QtGui import *
-# from PyQt5.QtCore import *
+    QPushButton, QRadioButton, QLineEdit, QDialog, QMainWindow
+
 import sandpile
 
 
@@ -50,7 +48,7 @@ class Window(QDialog):  # ):#QMainWindow):
         else:
             self.colours = {0: "white"}
             for c in range(1, self.k):
-                self.colours[c] = "#"+''.join([random.choice('0123456789ABCDEF') for _ in range(6)])
+                self.colours[c] = "#" + ''.join([random.choice('0123456789ABCDEF') for _ in range(6)])
         ind = 0
         for i in range(self.M):
             for j in range(self.N):
@@ -72,7 +70,8 @@ class Window(QDialog):  # ):#QMainWindow):
         layout.addWidget(self.random_radio_button)
 
         start_button = QPushButton("Start", self)
-        start_button.clicked.connect(partial(self.start_click))  # ,total_grains=self.number_grains_text.text(),random_pos = self.random_radio_button.isChecked()))
+        start_button.clicked.connect(partial(
+            self.start_click))  # ,total_grains=self.number_grains_text.text(),random_pos = self.random_radio_button.isChecked()))
         layout.addWidget(start_button)
 
         reset_button = QPushButton("Clear", self)
@@ -82,20 +81,22 @@ class Window(QDialog):  # ):#QMainWindow):
         self.horizontal_group_box.setLayout(layout)
 
     def add_grain(self, i, j):
-        self.sandPile.grid[i+1][j+1] += 1
-        sandgrid = self.sandPile.grid[1:self.M+1, 1:self.N+1]  # grid without edges
+        self.sandPile.grid[i + 1][j + 1] += 1
+        sandgrid = self.sandPile.grid[1:self.M + 1, 1:self.N + 1]  # grid without edges
         m, n = np.unravel_index(sandgrid.argmax(), sandgrid.shape)  # Find site with max grains:
-        m = m+1
-        n = n+1
+        m = m + 1
+        n = n + 1
 
         if self.sandPile.check_site(m, n):  # Avalanche
             _ = self.sandPile.execute_avalanche(m, n)  # Avalanche occurs at (m,n)
             for i in range(self.M):
                 for j in range(self.N):
                     # self.buttons[i*self.N+j].setText(f'{self.sandPile.grid[i+1][j+1]}')
-                    self.buttons[i*self.N+j].setStyleSheet("background-color : "+self.colours[self.sandPile.grid[i+1][j+1]])
+                    self.buttons[i * self.N + j].setStyleSheet(
+                        "background-color : " + self.colours[self.sandPile.grid[i + 1][j + 1]])
         else:  # no avalanche
-            self.buttons[i*self.N+j].setStyleSheet("background-color : "+self.colours[self.sandPile.grid[i+1][j+1]])
+            self.buttons[i * self.N + j].setStyleSheet(
+                "background-color : " + self.colours[self.sandPile.grid[i + 1][j + 1]])
 
     def start_click(self):
         total_grains = self.number_grains_text.text()
@@ -111,13 +112,13 @@ class Window(QDialog):  # ):#QMainWindow):
             pos_j = np.random.randint(self.N, size=total_grains)
         elif np.sum(self.sandPile.grid) == 0:
             print("Simulating grains dropped in center")
-            pos_i = self.M//2 * np.ones(total_grains, dtype=int)
-            pos_j = self.N//2 * np.ones(total_grains, dtype=int)
+            pos_i = self.M // 2 * np.ones(total_grains, dtype=int)
+            pos_j = self.N // 2 * np.ones(total_grains, dtype=int)
         elif np.sum(self.sandPile.grid) == 1:  # start on initial point
             print("Starting on initial seed")
             [i_index, j_index] = np.where(self.sandPile.grid == 1)
-            pos_i = (i_index-1) * np.ones(total_grains, dtype=int)
-            pos_j = (j_index-1) * np.ones(total_grains, dtype=int)
+            pos_i = (i_index - 1) * np.ones(total_grains, dtype=int)
+            pos_j = (j_index - 1) * np.ones(total_grains, dtype=int)
         else:
             print("Choose only one starting cell")
             return
@@ -125,16 +126,21 @@ class Window(QDialog):  # ):#QMainWindow):
             self.add_grain(pos_i[grain], pos_j[grain])
 
     def clear_grid(self):
-        plt.imshow(self.sandPile.grid[1:self.M+1, 1:self.N+1], cmap='Blues', interpolation='nearest')  # ,shading='gouraud')
+        plt.imshow(self.sandPile.grid[1:self.M + 1, 1:self.N + 1], cmap='Blues',
+                   interpolation='nearest')  # ,shading='gouraud')
         plt.show()
-        self.sandPile.grid = np.zeros([self.M+2, self.N+2], dtype=int)
+        self.sandPile.grid = np.zeros([self.M + 2, self.N + 2], dtype=int)
         for i in range(self.M):
             for j in range(self.N):
                 # self.buttons[i*self.N+j].setText(f'{self.sandPile.grid[i+1][j+1]}')
-                self.buttons[i*self.N+j].setStyleSheet("background-color : white")
+                self.buttons[i * self.N + j].setStyleSheet("background-color : white")
 
 
-if __name__ == '__main__':
+def main():
     app = QApplication(sys.argv)
     ex = Window()
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
