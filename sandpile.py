@@ -41,7 +41,7 @@ class Table:
         """Execute the avalanche starting at the point (m,n)"""
         a_size = 0  # Avalanche size - number of grains displaced during avalanche
         a_time = 0  # Avalanche lifetime- number of time-steps taken to relax to critical state
-        origin_pt = [i_0, j_0]  # Avalanche starts at (i_0, j_0)
+        origin_pt = [i_0, j_0]  # Avalanche starts a t (i_0, j_0)
         site_distances = []  # A list of the distances of toppling sites from origin
         topple_pts = [[i_0, j_0]]  # A list for storing surrounding pts which need to be toppled
         topple_sites = [[i_0, j_0]]  # Sites to be toppled
@@ -53,7 +53,7 @@ class Table:
                     topple_sites.append([i, j])
                 distance = abs(origin_pt[0] - i) + abs(origin_pt[1] - j)  # x+y distance from origin to topple pt.
                 site_distances.append(distance)
-                topple_pts = topple_pts[1:]  # remove point just toppled
+                topple_pts = topple_pts[1:]  # remove point just toppled  # TODO: use .pop()
                 a_size += 4  # 2d=4 grains displaced per topple
                 surrounding_pts = [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]
                 for site in surrounding_pts:  # Now check all cells surrounding, to see if avalanches will occur
@@ -66,7 +66,7 @@ class Table:
         # End of avalanche. Return statistics
         a_area = len(topple_sites)  # Avalanche area- number of unique sites toppled
         a_radius = max(
-            site_distances)  # Avalanche radius- max number of sites away from the initial point that the avalanche reaches
+            site_distances)  # Avalanche radius- max number of sites away from initial point that the avalanche reaches
         return {'size': a_size, 'lifetime': a_time, 'area': a_area, 'radius': a_radius}
 
     def topple(self, i_topple, j_topple):
