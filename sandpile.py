@@ -19,13 +19,11 @@ class Table:
         self.grid = np.zeros([M + 2, N + 2], dtype=int)  # extra rows and columns around edges for overflow
 
     def add_grain(self, *args):
-        # Function to add a single grain of sand to the table in a random site (m,n)
-        # optional args for position of grain
-        # m = random.randint(1,self.M)
-        # n = random.randint(1,self.N)
-        # self.grid[m,n] += 1
-        # OR dropping the grain in the centre of the grid:
-        if len(args) == 0:  # add grain in random position
+        """Function to add a single grain of sand to the table.
+        Optional args for position of grain"""
+        # add grain in random position:
+        # self.grid[random.randint(1,self.M), random.randint(1,self.N)] += 1
+        if len(args) == 0:  # Drop grain in the centre of the grid:
             self.grid[int(ceil((self.M + 1) / 2)), int(ceil((self.N + 1) / 2))] += 1
         else:
             self.grid[args[0], args[1]] += 1
