@@ -80,7 +80,7 @@ class Window(QDialog):  # ):#QMainWindow):
 
         self.horizontal_group_box.setLayout(layout)
 
-    def add_grain(self, i, j):
+    def add_grain(self, i, j):  # TODO: change method name...
         self.sandPile.grid[i + 1][j + 1] += 1
         sand_grid = self.sandPile.grid[1:self.M + 1, 1:self.N + 1]  # grid without edges
         m, n = np.unravel_index(sand_grid.argmax(), sand_grid.shape)  # Find site with max grains:

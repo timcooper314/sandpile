@@ -37,6 +37,9 @@ class Table:
         else:  # No avalanche
             return False
 
+    # TODO: rename this to execute_avalanche_with_stats (for use only in this module's main().
+    #  Create simplified copy execute_avalanche, for use with gui. New method can then be refactored...
+
     def execute_avalanche(self, i_0, j_0):
         """Execute the avalanche starting at the point (m,n)"""
         a_size = 0  # Avalanche size - number of grains displaced during avalanche
@@ -44,8 +47,8 @@ class Table:
         origin_pt = [i_0, j_0]  # Avalanche starts a t (i_0, j_0)
         site_distances = []  # A list of the distances of toppling sites from origin
         topple_pts = [[i_0, j_0]]  # A list for storing surrounding pts which need to be toppled
-        topple_sites = [[i_0, j_0]]  # Sites to be toppled
-        while topple_pts:
+        topple_sites = [[i_0, j_0]]  # Sites to be toppled  # TODO: Would a list of tuples be more efficient?
+        while topple_pts:  # TODO: manage topple pts by timestep... method for execute_timestep?
             for pt in topple_pts:
                 i, j = pt
                 self.topple(i, j)
@@ -53,7 +56,7 @@ class Table:
                     topple_sites.append([i, j])
                 distance = abs(origin_pt[0] - i) + abs(origin_pt[1] - j)  # x+y distance from origin to topple pt.
                 site_distances.append(distance)
-                topple_pts = topple_pts[1:]  # remove point just toppled  # TODO: use .pop()
+                topple_pts = topple_pts[1:]  # remove point just toppled  # TODO: use .pop(), .push() for a queue
                 a_size += 4  # 2d=4 grains displaced per topple
                 surrounding_pts = [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]
                 for site in surrounding_pts:  # Now check all cells surrounding, to see if avalanches will occur
