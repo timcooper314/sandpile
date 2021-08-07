@@ -15,7 +15,7 @@ class Table:
         self.M = M  # number of rows
         self.N = N  # number of columns
         self.k = k  # critical parameter
-        # Initialise M by N grid of zeroes:
+        # Initialise M by N grid of zeroes:  # TODO: Get rid of the zero padding?
         self.grid = np.zeros([M + 2, N + 2], dtype=int)  # extra rows and columns around edges for overflow
 
     def add_grain(self, *args):
@@ -37,6 +37,11 @@ class Table:
 
     # TODO: rename this to execute_avalanche_with_stats (for use only in this module's main().
     #  Create simplified copy execute_avalanche, for use with gui. New method can then be refactored...
+
+    # TODO: Subclass for Avalanche; new instance can be made when new grain is added (by gui module)
+    #       methods: execute_timestep.
+    #       attributes:  is_toppling (bool) for monitoring whether avalanche is active?
+    #                    critical_sites? (list/queue?) to be toppled in a single time step
 
     def execute_avalanche(self, i_0, j_0):
         """Execute the avalanche starting at the point (m,n)"""
