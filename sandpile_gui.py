@@ -115,13 +115,11 @@ class Window(QDialog):  # ):#QMainWindow):
             [i_index, j_index] = np.where(self.sandPile.grid == 1)
             pos_i = (i_index - 1) * np.ones(total_grains, dtype=int)
             pos_j = (j_index - 1) * np.ones(total_grains, dtype=int)
-        elif np.sum(self.sandPile.grid) == 0:
+        else:  #  np.sum(self.sandPile.grid) == 0:
             print("Simulating grains dropped in center")
             pos_i = self.M // 2 * np.ones(total_grains, dtype=int)
             pos_j = self.N // 2 * np.ones(total_grains, dtype=int)
-        else:
-            print("Choose only one starting cell")
-            return
+
         for grain in range(total_grains):
             self.add_grain(pos_i[grain], pos_j[grain])
 
