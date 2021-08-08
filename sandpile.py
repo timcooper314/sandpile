@@ -11,6 +11,10 @@ from plotting_helper import get_freq_data, plot_histogram, loglog_plot_stats, \
     power_law_fit_plot, power_law_func, exp_func
 
 
+def surrounding_pts(i, j):
+    return [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]
+
+
 class Table:
     def __init__(self, M, N, k):
         self.M = M  # number of rows
@@ -18,13 +22,10 @@ class Table:
         self.k = k  # critical parameter
         # Initialise M by N grid of zeroes:  # TODO: Get rid of the zero padding?
         self.grid = np.zeros([M + 2, N + 2], dtype=int)  # extra rows and columns around edges for overflow
-        self.topplePoints = queue.Queue()
 
     def add_grain(self, *args):
         """Function to add a single grain of sand to the table.
         Optional args for position of grain"""
-        # add grain in random position:
-        # self.grid[random.randint(1,self.M), random.randint(1,self.N)] += 1
         if len(args) == 0:  # Drop grain in the centre of the grid:
             self.grid[int(ceil((self.M + 1) / 2)), int(ceil((self.N + 1) / 2))] += 1
         else:
@@ -36,10 +37,8 @@ class Table:
 
     def topple(self, i_topple, j_topple):
         """Perform a toppling process at the grid point (m,n)"""
-        surrounds = [[i_topple + 1, j_topple], [i_topple - 1, j_topple], [i_topple, j_topple + 1],
-                     [i_topple, j_topple - 1]]
         self.grid[i_topple, j_topple] -= 4  # 4 grains topple
-        for pt in surrounds:
+        for pt in surrounding_pts(i_topple, j_topple):
             self.grid[pt[0], pt[1]] += 1  # surroundings gain a grain
 
     # TODO: Subclass for Avalanche; new instance can be made when new grain is added (by gui module)
@@ -47,20 +46,28 @@ class Table:
     #       attributes:  is_toppling (bool) for monitoring whether avalanche is active?
     #                    critical_sites? (list/queue?) to be toppled in a single time step
 
-    def execute_topple(self):
-        # Called once initial toppling point has been added, this will topple the next point in the queue and
-        # Will add to the toppling queue any points that have hit the toppling point
-        pt = self.topplePoints.get() #gets the point at the front of the queue, regardless of size
-        i,j = pt
-        if(self.is_critical_site(i,j)): #if the point is in the critical point, topple it and check surrounds
-           self.topple(i,j)
-           surrounding_pts = [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]
+    def execute_topple(self, i, j):
+        """Called once initial toppling point has been added, this will topple the next point in the queue and
+        Will add to the toppling queue any points that have hit the toppling point"""
+        new_critical_sites = set()
+        if self.is_critical_site(i, j):  # if the point is in the critical point, topple it and check surrounds
+            self.topple(i, j)
 
-           for site in surrounding_pts:  # Now check all cells surrounding, to see if avalanches will occur
+            for site in surrounding_pts(i, j):  # Now check all cells surrounding, to see if avalanches will occur
                 r, c = site
-                if (not (r == 0 or r == self.M + 1 or c == 0 or c == self.N + 1)):
-                    self.topplePoints.put([r,c]) #Re-Adding a point shouldn't cause issue, as it is checked
-                    #in the above if statement it is ready to topple
+                if not (r == 0 or r == self.M + 1 or c == 0 or c == self.N + 1):
+                    if self.is_critical_site(r, c):
+                        new_critical_sites.add((r, c))  # Re-Adding a point shouldn't cause issue, as it is checked
+        return new_critical_sites
+
+    def execute_timestep(self, sites_to_be_toppled):
+        """Topples sites within a single timestep, and returns new critical sites
+        which will be need to be toppled in the next timestep."""
+        next_timestep_critical_sites = set()
+        for site in sites_to_be_toppled:  # order doesn't matter
+            new_critical_sites = self.execute_topple(site[0], site[1])
+            next_timestep_critical_sites = next_timestep_critical_sites.union(new_critical_sites)
+        return next_timestep_critical_sites
 
     def execute_avalanche_with_stats(self, i_0, j_0):
         """Execute the avalanche starting at the point (m,n)"""

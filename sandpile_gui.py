@@ -34,7 +34,8 @@ class Window(QDialog):  # ):#QMainWindow):
 
     def set_colours(self):
         if self.k == 4:
-            self.colours = {0: "white", 1: "lightblue", 2: "#619bcc", 3: "#316a9a",4:"#255075", 5: "#4169E1", 6: "#0F52BA", 7: "#0818A8"}
+            self.colours = {0: "white", 1: "lightblue", 2: "#619bcc", 3: "#316a9a", 4: "#255075", 5: "#4169E1",
+                            6: "#0F52BA", 7: "#0818A8"}
         elif self.k == 8:
             self.colours = {0: "white", 1: "lightblue", 2: "#89CFF0", 3: "#0096FF",
                             4: "#1F51FF", 5: "#4169E1", 6: "#0F52BA", 7: "#0818A8"}
@@ -52,10 +53,11 @@ class Window(QDialog):  # ):#QMainWindow):
         ind = 0
         for i in range(self.M):
             for j in range(self.N):
-                self.buttons.append(QPushButton())  # f'{0}'))
-                self.buttons[ind].clicked.connect(partial(self.update_grid, i, j))
-                self.buttons[ind].setStyleSheet("background-color : white")
-                layout.addWidget(self.buttons[ind], i, j)  # , 2, 1)
+                button = QPushButton()
+                button.clicked.connect(partial(self.update_grid, i, j))
+                button.setStyleSheet("background-color : white")
+                self.buttons.append(button)
+                layout.addWidget(button, i, j)
                 ind += 1
         self.grid_group_box.setLayout(layout)
 
@@ -81,45 +83,31 @@ class Window(QDialog):  # ):#QMainWindow):
 
     def update_grid(self, i, j):
         self.sandPile.add_grain(i + 1, j + 1)
-        sand_grid = self.sandPile.grid[1:self.M + 1, 1:self.N + 1]  # grid without edges
-        m, n = np.unravel_index(sand_grid.argmax(), sand_grid.shape)  # Find site with max grains:
-        m = m + 1
-        n = n + 1
-        if self.sandPile.is_critical_site(m, n):  # Avalanche
-            self.execute_avalanche(m, n)
+        if self.sandPile.is_critical_site(i + 1, j + 1):
+            self.execute_avalanche(i + 1, j + 1)
         else:  # no avalanche
             self.buttons[i * self.N + j].setStyleSheet(
                 "background-color : " + self.colours[self.sandPile.grid[i + 1][j + 1]])  # + ";border :5px solid red;")
+            # self.buttons[i * self.N + j].repaint()
 
-    def execute_avalanche(self, m, n):
-        # TODO: Perform a do while loop instead? not sure if this is worthwhile in python
-        self.sandPile.topplePoints.put([m, n])  # Add initial point to sandpile
-        while not self.sandPile.topplePoints.empty():  # Loop the toppln of piles until grid hits a 'steady' state
-            _ = self.sandPile.execute_topple()  # Avalanche occurs at (m,n)
+    def execute_avalanche(self, i_c, j_c):
+        """Initiates avalanche at (i_c, j_c).
+        Loops over the toppling of piles until grid hits a 'steady' state"""
+        toppling_sites = set()
+        toppling_sites.add((i_c, j_c))
+        while len(toppling_sites) != 0:
+            new_critical_sites = self.sandPile.execute_timestep(toppling_sites)
+            toppling_sites = new_critical_sites
         # TODO: Extract repainting logic to another method
-        for x in range(self.M):
-            for y in range(self.N):  # This is quite time expensive... hopefully can optimise
-                self.buttons[x * self.N + y].setStyleSheet(
-                    "background-color : " + self.colours[self.sandPile.grid[x + 1][y + 1]])
-                    # #Repaint the epicenter of the avalance to have a border
-                    # if(x == i and y == j):
-                    #     self.buttons[x * self.N + y].setStyleSheet(
-                    #     "background-color : " + self.colours[self.sandPile.grid[x + 1][y + 1]])
-                    #     # + ";border :5px solid red;")
-                    # # self.buttons[x*self.N+y].setText(f'{self.sandPile.grid[x+1][y+1]}')
-                    # else:
-                    #     self.buttons[x * self.N + y].setStyleSheet(
-                    #         "background-color : " + self.colours[self.sandPile.grid[x + 1][y + 1]])
-                # self.grid_group_box.repaint()
-
-
+        self.update_button_colours()
 
     def update_button_colours(self):
         for x in range(self.M):  # TODO: this is time expensive...
-            for y in range(self.N):
+            for y in range(self.N):  # This is quite time expensive... hopefully can optimise
                 # self.buttons[x*self.N+y].setText(f'{self.sandPile.grid[x+1][y+1]}')
                 self.buttons[x * self.N + y].setStyleSheet(
-                    "background-color : " + self.colours[self.sandPile.grid[x + 1][y + 1]])  # TODO: what colour for supercritical (>4) cells?
+                    "background-color : " + self.colours[
+                        self.sandPile.grid[x + 1][y + 1]])  # TODO: what colour for supercritical (>4) cells?
 
     def start_click(self):
         total_grains = self.number_grains_text.text()
@@ -138,7 +126,7 @@ class Window(QDialog):  # ):#QMainWindow):
             [i_index, j_index] = np.where(self.sandPile.grid == 1)
             pos_i = (i_index - 1) * np.ones(total_grains, dtype=int)
             pos_j = (j_index - 1) * np.ones(total_grains, dtype=int)
-        else:  #  np.sum(self.sandPile.grid) == 0:
+        else:  # np.sum(self.sandPile.grid) == 0:
             print("Simulating grains dropped in center")
             pos_i = self.M // 2 * np.ones(total_grains, dtype=int)
             pos_j = self.N // 2 * np.ones(total_grains, dtype=int)

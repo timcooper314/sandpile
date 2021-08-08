@@ -212,10 +212,18 @@ category = "dev"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
+[[package]]
+name = "unittest"
+version = "0.0"
+description = ""
+category = "dev"
+optional = false
+python-versions = "*"
+
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8"
-content-hash = "bfa6a622739dd6476c8a54ef1538553cb0666313ee6001204393f4419cef4965"
+content-hash = "112b7a02fc5490051c1ca42f785447eaedf8ab96f3fbe7620f69c9ee204167bd"
 
 [metadata.files]
 atomicwrites = [
@@ -448,4 +456,7 @@ six = [
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
     {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
+]
+unittest = [
+    {file = "unittest2-0.0.0.tar.gz", hash = "sha256:1b492484bea7f68abda5fcc61412e77b6a105e5842355d630f8b75f01add3555"},
 ]
