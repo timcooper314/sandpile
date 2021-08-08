@@ -30,12 +30,9 @@ class Table:
         else:
             self.grid[args[0], args[1]] += 1
 
-    def check_site(self, i_check, j_check):
+    def is_critical_site(self, i_check, j_check):
         """Checks if any avalanches will occur at (m,n)"""
-        if self.grid[i_check, j_check] >= self.k:  # avalanche
-            return True
-        else:  # No avalanche
-            return False
+        return self.grid[i_check, j_check] >= self.k  # avalanche
 
     def topple(self, i_topple, j_topple):
         """Perform a toppling process at the grid point (m,n)"""
@@ -50,21 +47,20 @@ class Table:
     #       attributes:  is_toppling (bool) for monitoring whether avalanche is active?
     #                    critical_sites? (list/queue?) to be toppled in a single time step
 
-    #Called once initial toppling point has been added, this will topple the next point in the queue and
-    #Will add to the toppling queue any points that have hit the toppling point
-    def execute_avalanche(self):
+    def execute_topple(self):
+        # Called once initial toppling point has been added, this will topple the next point in the queue and
+        # Will add to the toppling queue any points that have hit the toppling point
         pt = self.topplePoints.get() #gets the point at the front of the queue, regardless of size
         i,j = pt
-        if(self.check_site(i,j)): #if the point is in the critical point, topple it and check surrounds
+        if(self.is_critical_site(i,j)): #if the point is in the critical point, topple it and check surrounds
            self.topple(i,j)
-           surrounding_pts = [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]] 
+           surrounding_pts = [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]
 
            for site in surrounding_pts:  # Now check all cells surrounding, to see if avalanches will occur
                 r, c = site
                 if (not (r == 0 or r == self.M + 1 or c == 0 or c == self.N + 1)):
                     self.topplePoints.put([r,c]) #Re-Adding a point shouldn't cause issue, as it is checked
                     #in the above if statement it is ready to topple
-        
 
     def execute_avalanche_with_stats(self, i_0, j_0):
         """Execute the avalanche starting at the point (m,n)"""
@@ -89,7 +85,7 @@ class Table:
                     r, c = site
                     if r == 0 or r == self.M + 1 or c == 0 or c == self.N + 1:  # If sand fell off table
                         pass
-                    elif self.check_site(r, c):
+                    elif self.is_critical_site(r, c):
                         topple_pts.append([r, c])
             a_time += 1  # Count a time-step
         # End of avalanche. Return statistics
@@ -121,7 +117,7 @@ def main():
             m += 1
             n += 1
             # Check if avalanche will occur:
-            if sandpile.check_site(m, n):
+            if sandpile.is_critical_site(m, n):
                 stats = sandpile.execute_avalanche_with_stats(m, n)  # Avalanche occurs at (m,n)
                 # store statistics for avalanche:
                 size.append(stats['size'])
