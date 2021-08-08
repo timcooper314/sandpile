@@ -9,6 +9,7 @@ python = "~3.8"
 matplotlib = "^3.4.2"
 numpy = "^1.21.1"
 scipy = "^1.7.1"
+PyQt5 = "^5.15.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
