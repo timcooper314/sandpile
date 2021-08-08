@@ -16,18 +16,16 @@ class Table:
         self.M = M  # number of rows
         self.N = N  # number of columns
         self.k = k  # critical parameter
-        # Initialise M by N grid of zeroes:
+        # Initialise M by N grid of zeroes:  # TODO: Get rid of the zero padding?
         self.grid = np.zeros([M + 2, N + 2], dtype=int)  # extra rows and columns around edges for overflow
         self.topplePoints = queue.Queue()
 
     def add_grain(self, *args):
-        # Function to add a single grain of sand to the table in a random site (m,n)
-        # optional args for position of grain
-        # m = random.randint(1,self.M)
-        # n = random.randint(1,self.N)
-        # self.grid[m,n] += 1
-        # OR dropping the grain in the centre of the grid:
-        if len(args) == 0:  # add grain in random position
+        """Function to add a single grain of sand to the table.
+        Optional args for position of grain"""
+        # add grain in random position:
+        # self.grid[random.randint(1,self.M), random.randint(1,self.N)] += 1
+        if len(args) == 0:  # Drop grain in the centre of the grid:
             self.grid[int(ceil((self.M + 1) / 2)), int(ceil((self.N + 1) / 2))] += 1
         else:
             self.grid[args[0], args[1]] += 1
@@ -39,8 +37,18 @@ class Table:
         else:  # No avalanche
             return False
 
-    # TODO: rename this to execute_avalanche_with_stats (for use only in this module's main().
-    #  Create simplified copy execute_avalanche, for use with gui. New method can then be refactored...
+    def topple(self, i_topple, j_topple):
+        """Perform a toppling process at the grid point (m,n)"""
+        surrounds = [[i_topple + 1, j_topple], [i_topple - 1, j_topple], [i_topple, j_topple + 1],
+                     [i_topple, j_topple - 1]]
+        self.grid[i_topple, j_topple] -= 4  # 4 grains topple
+        for pt in surrounds:
+            self.grid[pt[0], pt[1]] += 1  # surroundings gain a grain
+
+    # TODO: Subclass for Avalanche; new instance can be made when new grain is added (by gui module)
+    #       methods: execute_timestep.
+    #       attributes:  is_toppling (bool) for monitoring whether avalanche is active?
+    #                    critical_sites? (list/queue?) to be toppled in a single time step
 
     #Called once initial toppling point has been added, this will topple the next point in the queue and
     #Will add to the toppling queue any points that have hit the toppling point
@@ -65,8 +73,8 @@ class Table:
         origin_pt = [i_0, j_0]  # Avalanche starts a t (i_0, j_0)
         site_distances = []  # A list of the distances of toppling sites from origin
         topple_pts = [[i_0, j_0]]  # A list for storing surrounding pts which need to be toppled
-        topple_sites = [[i_0, j_0]]  # Sites to be toppled  # TODO: Would a list of tuples be more efficient?
-        while topple_pts:  # TODO: manage topple pts by timestep... method for execute_timestep?
+        topple_sites = [[i_0, j_0]]  # Sites to be toppled
+        while topple_pts:
             for pt in topple_pts:
                 i, j = pt
                 self.topple(i, j)
@@ -74,7 +82,7 @@ class Table:
                     topple_sites.append([i, j])
                 distance = abs(origin_pt[0] - i) + abs(origin_pt[1] - j)  # x+y distance from origin to topple pt.
                 site_distances.append(distance)
-                topple_pts = topple_pts[1:]  # remove point just toppled  # TODO: use .pop(), .push() for a queue
+                topple_pts = topple_pts[1:]  # remove point just toppled
                 a_size += 4  # 2d=4 grains displaced per topple
                 surrounding_pts = [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]
                 for site in surrounding_pts:  # Now check all cells surrounding, to see if avalanches will occur
@@ -89,14 +97,6 @@ class Table:
         a_radius = max(
             site_distances)  # Avalanche radius- max number of sites away from initial point that the avalanche reaches
         return {'size': a_size, 'lifetime': a_time, 'area': a_area, 'radius': a_radius}
-
-    def topple(self, i_topple, j_topple):
-        """Perform a toppling process at the grid point (m,n)"""
-        surrounds = [[i_topple + 1, j_topple], [i_topple - 1, j_topple], [i_topple, j_topple + 1],
-                     [i_topple, j_topple - 1]]
-        self.grid[i_topple, j_topple] -= 4  # 4 grains topple
-        for pt in surrounds:
-            self.grid[pt[0], pt[1]] += 1  # surroundings gain a grain
 
 
 def main():
@@ -122,7 +122,7 @@ def main():
             n += 1
             # Check if avalanche will occur:
             if sandpile.check_site(m, n):
-                stats = sandpile.execute_avalanche(m, n)  # Avalanche occurs at (m,n)
+                stats = sandpile.execute_avalanche_with_stats(m, n)  # Avalanche occurs at (m,n)
                 # store statistics for avalanche:
                 size.append(stats['size'])
                 lifetime.append(stats['lifetime'])

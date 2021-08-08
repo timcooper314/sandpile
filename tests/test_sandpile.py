@@ -5,16 +5,24 @@ from sandpile import Table
 
 @fixture
 def sand_pile_parameters():
-    m = 5
-    n = 5
+    m = 5  # Small enough to be manageable in testing,
+    n = 5  # and large enough to cover nontrivial tests
     k = 4
     return m, n, k
 
 
 @fixture
-def sand_pile_table(sand_pile_parameters):
+def empty_sand_pile(sand_pile_parameters):
     m, n, k = sand_pile_parameters
     return Table(m, n, k)
+
+
+@fixture
+def sand_pile_with_critical_site(sand_pile_parameters):
+    m, n, k = sand_pile_parameters
+    table = Table(m, n, k)
+    table.grid[3, 3] = k
+    return table
 
 
 @fixture
@@ -24,6 +32,26 @@ def expected_table_grain_added():
     return table_one_grain
 
 
-def test_should_add_grain_to_center(sand_pile_table, expected_table_grain_added):
-    sand_pile_table.add_grain()
-    assert sand_pile_table.grid[3, 3] == expected_table_grain_added[3, 3]
+@fixture
+def expected_table_after_single_topple():
+    return np.array([[0, 0, 0, 0, 0, 0, 0],
+                     [0, 0, 0, 0, 0, 0, 0],
+                     [0, 0, 0, 1, 0, 0, 0],
+                     [0, 0, 1, 0, 1, 0, 0],
+                     [0, 0, 0, 1, 0, 0, 0],
+                     [0, 0, 0, 0, 0, 0, 0],
+                     [0, 0, 0, 0, 0, 0, 0]])
+
+
+def test_should_add_grain_to_center(empty_sand_pile, expected_table_grain_added):
+    empty_sand_pile.add_grain()
+    assert empty_sand_pile.grid.all() == expected_table_grain_added.all()
+
+
+def test_should_check_critical_site(sand_pile_with_critical_site):
+    assert sand_pile_with_critical_site.check_site(3, 3) is True
+
+
+def test_should_topple_site(sand_pile_with_critical_site, expected_table_after_single_topple):
+    sand_pile_with_critical_site.topple(3, 3)
+    assert sand_pile_with_critical_site.grid.all() == expected_table_after_single_topple.all()
