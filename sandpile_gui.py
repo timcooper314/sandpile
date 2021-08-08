@@ -34,7 +34,7 @@ class Window(QDialog):  # ):#QMainWindow):
 
     def set_colours(self):
         if self.k == 4:
-            self.colours = {0: "white", 1: "lightblue", 2: "#619bcc", 3: "#316a9a"}  # ,4:"#255075"}
+            self.colours = {0: "white", 1: "lightblue", 2: "#619bcc", 3: "#316a9a",4:"#255075", 5: "#4169E1", 6: "#0F52BA", 7: "#0818A8"}
         elif self.k == 8:
             self.colours = {0: "white", 1: "lightblue", 2: "#89CFF0", 3: "#0096FF",
                             4: "#1F51FF", 5: "#4169E1", 6: "#0F52BA", 7: "#0818A8"}
@@ -86,17 +86,31 @@ class Window(QDialog):  # ):#QMainWindow):
         m, n = np.unravel_index(sand_grid.argmax(), sand_grid.shape)  # Find site with max grains:
         m = m + 1
         n = n + 1
+        
 
         if self.sandPile.check_site(m, n):  # Avalanche
-            _ = self.sandPile.execute_avalanche(m, n)  # Avalanche occurs at (m,n)
-            for x in range(self.M):
-                for y in range(self.N):
-                    # self.buttons[x*self.N+y].setText(f'{self.sandPile.grid[x+1][y+1]}')
-                    self.buttons[x * self.N + y].setStyleSheet(
-                        "background-color : " + self.colours[self.sandPile.grid[x + 1][y + 1]])
+            #TODO: Perform a do while loop instead? not sure if this is worthwhile in python
+            self.sandPile.topplePoints.put([m,n]) #Add initial point to sandpile
+            
+            while(not self.sandPile.topplePoints.empty()): #Loop the toppln of piles until grid hits a 'steady' state
+                _ = self.sandPile.execute_avalanche()  # Avalanche occurs at (m,n)
+                #TODO: Extract repainting logic to another method
+                for x in range(self.M): # 
+                    for y in range(self.N):
+                        #Repaint the epicenter of the avalance to have a border
+                        if(x == i and y == j):
+                            self.buttons[x * self.N + y].setStyleSheet(
+                            "background-color : " + self.colours[self.sandPile.grid[x + 1][y + 1]]
+                            + ";border :5px solid red;")
+                        # self.buttons[x*self.N+y].setText(f'{self.sandPile.grid[x+1][y+1]}')
+                        else:
+                            self.buttons[x * self.N + y].setStyleSheet(
+                                "background-color : " + self.colours[self.sandPile.grid[x + 1][y + 1]])
+                self.grid_group_box.repaint()        
+
         else:  # no avalanche
             self.buttons[i * self.N + j].setStyleSheet(
-                "background-color : " + self.colours[self.sandPile.grid[i + 1][j + 1]])
+                "background-color : " + self.colours[self.sandPile.grid[i + 1][j + 1]]+ ";border :5px solid red;")
 
     def start_click(self):
         total_grains = self.number_grains_text.text()

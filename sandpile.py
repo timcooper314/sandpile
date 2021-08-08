@@ -1,6 +1,7 @@
 """Bak-Tang-Wiesenfeld sandpile model"""
 
 import numpy as np
+import queue
 # import scipy as sp
 # import random as random
 import matplotlib.pyplot as plt
@@ -17,6 +18,7 @@ class Table:
         self.k = k  # critical parameter
         # Initialise M by N grid of zeroes:
         self.grid = np.zeros([M + 2, N + 2], dtype=int)  # extra rows and columns around edges for overflow
+        self.topplePoints = queue.Queue()
 
     def add_grain(self, *args):
         # Function to add a single grain of sand to the table in a random site (m,n)
@@ -32,7 +34,7 @@ class Table:
 
     def check_site(self, i_check, j_check):
         """Checks if any avalanches will occur at (m,n)"""
-        if self.grid[i_check, j_check] == self.k:  # avalanche
+        if self.grid[i_check, j_check] >= self.k:  # avalanche
             return True
         else:  # No avalanche
             return False
@@ -40,7 +42,23 @@ class Table:
     # TODO: rename this to execute_avalanche_with_stats (for use only in this module's main().
     #  Create simplified copy execute_avalanche, for use with gui. New method can then be refactored...
 
-    def execute_avalanche(self, i_0, j_0):
+    #Called once initial toppling point has been added, this will topple the next point in the queue and
+    #Will add to the toppling queue any points that have hit the toppling point
+    def execute_avalanche(self):
+        pt = self.topplePoints.get() #gets the point at the front of the queue, regardless of size
+        i,j = pt
+        if(self.check_site(i,j)): #if the point is in the critical point, topple it and check surrounds
+           self.topple(i,j)
+           surrounding_pts = [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]] 
+
+           for site in surrounding_pts:  # Now check all cells surrounding, to see if avalanches will occur
+                r, c = site
+                if (not (r == 0 or r == self.M + 1 or c == 0 or c == self.N + 1)):
+                    self.topplePoints.put([r,c]) #Re-Adding a point shouldn't cause issue, as it is checked
+                    #in the above if statement it is ready to topple
+        
+
+    def execute_avalanche_with_stats(self, i_0, j_0):
         """Execute the avalanche starting at the point (m,n)"""
         a_size = 0  # Avalanche size - number of grains displaced during avalanche
         a_time = 0  # Avalanche lifetime- number of time-steps taken to relax to critical state
