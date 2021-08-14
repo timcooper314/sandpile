@@ -89,8 +89,7 @@ class Window(QWidget):
     def execute_avalanche(self, i_c, j_c):
         """Initiates avalanche at (i_c, j_c).
         Loops over the toppling of piles until grid hits a 'steady' state"""
-        toppling_sites = set()
-        toppling_sites.add((i_c, j_c))
+        toppling_sites = set([(i_c, j_c)])
         while toppling_sites:
             new_critical_sites = self.sandPile.execute_timestep(toppling_sites)
             toppling_sites = new_critical_sites
@@ -126,6 +125,7 @@ class Window(QWidget):
         for grain in range(total_grains):
             self.update_grid(pos_i[grain], pos_j[grain])
         self.update_button_colours()
+        self.gui_grid.update() # repaint()
 
     def clear_grid(self):
         plt.imshow(self.sandPile.grid[1:self.M + 1, 1:self.N + 1], cmap='Blues',
