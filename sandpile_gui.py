@@ -4,14 +4,15 @@ import random as random
 import numpy as np
 import matplotlib.pyplot as plt
 from functools import partial
-
+from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, \
-    QPushButton, QRadioButton, QLineEdit, QDialog, QMainWindow
-
+    QPushButton, QRadioButton, QLineEdit, QDialog, QWidget
+from PyQt5.QtGui import QPainter
+from PyQt5.QtCore import Qt, QBasicTimer
 import sandpile
 
 
-class Window(QDialog):  # ):#QMainWindow):
+class Window(QWidget):
     def __init__(self):
         super().__init__()
         self.M = 25
@@ -24,10 +25,10 @@ class Window(QDialog):  # ):#QMainWindow):
         self.setWindowTitle("Abelian Sandpile")
         self.setGeometry(100, 100, 300, 300)  # x,y pos, width,height
         self.window_layout = QVBoxLayout()
-        self.create_grid_layout()
+        self.gui_grid: QGridLayout = self.create_grid_layout()
         self.create_horizontal_layout()
 
-        self.window_layout.addWidget(self.grid_group_box)
+        self.window_layout.addItem(self.gui_grid)
         self.window_layout.addWidget(self.horizontal_group_box)
         self.setLayout(self.window_layout)
         self.show()
@@ -45,21 +46,16 @@ class Window(QDialog):  # ):#QMainWindow):
                 self.colours[c] = "#" + ''.join([random.choice('0123456789ABCDEF') for _ in range(6)])
 
     def create_grid_layout(self):
-        self.grid_group_box = QGroupBox("Grid")
         layout = QGridLayout()
         layout.setSpacing(0)
         self.set_colours()
-        self.buttons = []
-        ind = 0
         for i in range(self.M):
             for j in range(self.N):
                 button = QPushButton()
                 button.clicked.connect(partial(self.update_grid, i, j))
                 button.setStyleSheet("background-color : white")
-                self.buttons.append(button)
                 layout.addWidget(button, i, j)
-                ind += 1
-        self.grid_group_box.setLayout(layout)
+        return layout
 
     def create_horizontal_layout(self):
         self.horizontal_group_box = QGroupBox("horizontal")
@@ -86,28 +82,26 @@ class Window(QDialog):  # ):#QMainWindow):
         if self.sandPile.is_critical_site(i + 1, j + 1):
             self.execute_avalanche(i + 1, j + 1)
         else:  # no avalanche
-            self.buttons[i * self.N + j].setStyleSheet(
-                "background-color : " + self.colours[self.sandPile.grid[i + 1][j + 1]])  # + ";border :5px solid red;")
-            # self.buttons[i * self.N + j].repaint()
+            self.gui_grid.itemAtPosition(i, j).widget().setStyleSheet(
+                f"background-color:{self.colours[self.sandPile.grid[i + 1][j + 1]]}")
+        self.update_button_colours()
 
     def execute_avalanche(self, i_c, j_c):
         """Initiates avalanche at (i_c, j_c).
         Loops over the toppling of piles until grid hits a 'steady' state"""
         toppling_sites = set()
         toppling_sites.add((i_c, j_c))
-        while len(toppling_sites) != 0:
+        while toppling_sites:
             new_critical_sites = self.sandPile.execute_timestep(toppling_sites)
             toppling_sites = new_critical_sites
-        # TODO: Extract repainting logic to another method
-        self.update_button_colours()
+            # self.update_button_colours()
 
     def update_button_colours(self):
         for x in range(self.M):  # TODO: this is time expensive...
             for y in range(self.N):  # This is quite time expensive... hopefully can optimise
-                # self.buttons[x*self.N+y].setText(f'{self.sandPile.grid[x+1][y+1]}')
-                self.buttons[x * self.N + y].setStyleSheet(
-                    "background-color : " + self.colours[
-                        self.sandPile.grid[x + 1][y + 1]])  # TODO: what colour for supercritical (>4) cells?
+                # self.gui_grid.itemAtPosition(x, y).widget().setText(f'{self.sandPile.grid[x+1][y+1]}')
+                # TODO: what colour for supercritical (>4) cells?
+                self.gui_grid.itemAtPosition(x, y).widget().setStyleSheet(f"background-color:{self.colours[self.sandPile.grid[x + 1][y + 1]]}")
 
     def start_click(self):
         total_grains = self.number_grains_text.text()
@@ -117,7 +111,6 @@ class Window(QDialog):  # ):#QMainWindow):
             print(f"Default number of grains: {total_grains}")
         else:
             total_grains = int(total_grains)
-
         if random_pos:
             pos_i = np.random.randint(self.M, size=total_grains)
             pos_j = np.random.randint(self.N, size=total_grains)
@@ -130,9 +123,9 @@ class Window(QDialog):  # ):#QMainWindow):
             print("Simulating grains dropped in center")
             pos_i = self.M // 2 * np.ones(total_grains, dtype=int)
             pos_j = self.N // 2 * np.ones(total_grains, dtype=int)
-
         for grain in range(total_grains):
             self.update_grid(pos_i[grain], pos_j[grain])
+        self.update_button_colours()
 
     def clear_grid(self):
         plt.imshow(self.sandPile.grid[1:self.M + 1, 1:self.N + 1], cmap='Blues',
@@ -142,7 +135,7 @@ class Window(QDialog):  # ):#QMainWindow):
         for i in range(self.M):
             for j in range(self.N):
                 # self.buttons[i*self.N+j].setText(f'{self.sandPile.grid[i+1][j+1]}')
-                self.buttons[i * self.N + j].setStyleSheet("background-color : white")
+                self.gui_grid.itemAtPosition(i, j).widget().setStyleSheet(f"background-color: white")
 
 
 def main():
