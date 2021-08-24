@@ -7,8 +7,6 @@ from functools import partial
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, \
     QPushButton, QRadioButton, QLineEdit, QDialog, QWidget
-from PyQt5.QtGui import QPainter
-from PyQt5.QtCore import Qt, QBasicTimer
 import sandpile
 
 
