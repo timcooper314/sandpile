@@ -10,10 +10,11 @@ import sandpile
 class Window:
     def __init__(self):
         self.root = Tk()
-        self.M = 21
-        self.N = 21
+        self.M = 25
+        self.N = 25
         self.k = 4
         self.colours = ['white'] + pcolours.Deep_5.hex_colors
+        self.total_grains = 1000
         self.sandPile = sandpile.Table(self.M, self.N, self.k)
         self.init_ui()
         self.start_click()
@@ -36,6 +37,7 @@ class Window:
             self.execute_avalanche(i + 1, j + 1)
         else:  # no avalanche
             self.entries[i * self.N + j].configure(background=self.colours[min(self.k, self.sandPile.grid[i + 1][j + 1])])
+        self.update_button_colours()
         self.root.update()
 
     def execute_avalanche(self, i_c, j_c):
@@ -54,13 +56,9 @@ class Window:
         self.root.update()
 
     def start_click(self):
-        total_grains = 500
         print("Simulating grains dropped in center")
-        pos_i = self.M // 2 * np.ones(total_grains, dtype=int)
-        pos_j = self.N // 2 * np.ones(total_grains, dtype=int)
-        for grain in range(total_grains):
-            self.update_grid(pos_i[grain], pos_j[grain])
-            self.update_button_colours()
+        for _ in range(self.total_grains):
+            self.update_grid(self.M // 2, self.N // 2)
 
 
 def main():
