@@ -1,3 +1,6 @@
+# Sandpile model
+![Tests](https://github.com/timcooper314/sandpile/actions/workflows/tests.yaml/badge.svg)
+
 Requires Python ~3.8, poetry.
 
 Install project dependencies:
